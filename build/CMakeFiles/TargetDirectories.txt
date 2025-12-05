@@ -1,5 +1,0 @@
-/workspaces/c-project/build/CMakeFiles/MyCProject-ex.dir
-/workspaces/c-project/build/CMakeFiles/Swap-ex.dir
-/workspaces/c-project/build/CMakeFiles/Print_hist-ex.dir
-/workspaces/c-project/build/CMakeFiles/edit_cache.dir
-/workspaces/c-project/build/CMakeFiles/rebuild_cache.dir
