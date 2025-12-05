@@ -9,3 +9,5 @@ add_executable(MyCProject-ex src/main.c)
 add_executable(Swap-ex src/swap_main.c)
 
 add_executable(Print_hist-ex src/printHist_main.c src/itec.c)
+
+add_executable(Aufgabe1-ex src/aufgabe1.c)
