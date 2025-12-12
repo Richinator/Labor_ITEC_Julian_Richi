@@ -11,6 +11,30 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sqlite3.h>
+
+void save_measurement(sqlite3 *db, double real_dist, double sensor_dist, double diff_dist) 
+{
+    sqlite3_stmt *stmt;
+    const char *sql =
+        "INSERT INTO messungen (realer_abstand, sensor_wert, differenz, zeit) "
+        "VALUES (?, ?, ?, datetime('now'));";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        printf("SQLite prepare error: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_double(stmt, 1, real_dist);
+    sqlite3_bind_double(stmt, 2, sensor_dist);
+    sqlite3_bind_double(stmt, 3, diff_dist);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        printf("SQLite step error: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+}
 
 int main() {
     const char* port = "/dev/ttyUSB0";
@@ -61,6 +85,24 @@ int main() {
         printf("Fehler beim öffnen von daten.csv");
     }
 
+    sqlite3 *db;
+    sqlite3_open("messung.db", &db);
+    const char *create_sql =
+    "CREATE TABLE IF NOT EXISTS messungen ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+    "realer_abstand REAL,"
+    "sensor_wert REAL,"
+    "differenz REAL,"
+    "zeit TEXT"
+    ");";
+
+    char *errmsg;
+    if (sqlite3_exec(db, create_sql, NULL, NULL, &errmsg) != SQLITE_OK) {
+        printf("SQLite create table error: %s\n", errmsg);
+        sqlite3_free(errmsg);
+    }
+
+
     // Endlosschleife zum Lesen
     for (int i = 1; i <= 3; i++) {
         char buffer[256];
@@ -80,10 +122,12 @@ int main() {
             printf("gemessene Distanz: %lf\n", sensor_dist);
             printf("Differenz: %lf\n", diff_dist);
             fprintf(stream, "%lf, %lf, %lf\n", real_dist, sensor_dist, diff_dist);
+            save_measurement(db, real_dist, sensor_dist, diff_dist);
         }
     }
     fclose(stream);
-
+    sqlite3_close(db);
+    
     // void save_measurement(sqlite3 *db, double real_dist, double sensor_dist, double diff_dist) {
     //     sqlite3_stmt *stmt;
     //     const char *sql = "INSERT INTO messungen (realer_abstand, sensor_wert, differenz) VALUES (?, ?, ?);";

@@ -11,3 +11,7 @@ add_executable(Swap-ex src/swap_main.c)
 add_executable(Print_hist-ex src/printHist_main.c src/itec.c)
 
 add_executable(Aufgabe1-ex src/aufgabe1.c)
+
+find_package(SQLite3 REQUIRED)
+
+target_link_libraries(Aufgabe1-ex PRIVATE SQLite::SQLite3)
