@@ -36,6 +36,32 @@ void save_measurement(sqlite3 *db, double real_dist, double sensor_dist, double 
     sqlite3_finalize(stmt);
 }
 
+void print_all_rows(sqlite3 *db) {
+    const char *sql = "SELECT id, realer_abstand, sensor_wert, differenz, zeit FROM messungen;";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        printf("SQLite select error: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    printf("\n--- Messwerte in der Datenbank ---\n");
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        double realer = sqlite3_column_double(stmt, 1);
+        double sensor = sqlite3_column_double(stmt, 2);
+        double diff = sqlite3_column_double(stmt, 3);
+        const unsigned char *zeit = sqlite3_column_text(stmt, 4);
+
+        printf("ID %d | real: %.3f | sensor: %.3f | diff: %.3f | zeit: %s\n",
+               id, realer, sensor, diff, zeit);
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+
 int main() {
     const char* port = "/dev/ttyUSB0";
     int serial_port = open(port, O_RDWR);
@@ -128,11 +154,9 @@ int main() {
     fclose(stream);
     sqlite3_close(db);
     
-    // void save_measurement(sqlite3 *db, double real_dist, double sensor_dist, double diff_dist) {
-    //     sqlite3_stmt *stmt;
-    //     const char *sql = "INSERT INTO messungen (realer_abstand, sensor_wert, differenz) VALUES (?, ?, ?);";
-    //     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    // }
+    printf("Alle Messungen in der Datenbank:\n");
+    print_all_rows(db);
+    sqlite3_close(db);
 
     close(serial_port);
     return 0;
