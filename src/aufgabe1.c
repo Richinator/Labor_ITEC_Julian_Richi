@@ -56,19 +56,13 @@ int main() {
         return 1;
     }
 
-    double real_dist;
-    printf("Bitte geben Sie die reale Distanz ein: ");
-    fgets("%lf", &real_dist);
-    printf("Du hast %lf eingegeben", real_dist);
-    FILE *stream = fopen("Home/Documents/daten.txt", "r");
+    FILE *stream = fopen("../src/daten.csv", "w");
     if(stream == NULL) {
         printf("Fehler beim öffnen von daten.csv");
     }
-    fprintf(stream, "%lf\n", real_dist);
-    fclose(stream);
 
     // Endlosschleife zum Lesen
-    while (1) {
+    for (int i = 1; i <= 3; i++) {
         char buffer[256];
         memset(buffer, 0, sizeof(buffer));
 
@@ -77,9 +71,24 @@ int main() {
         if (num_bytes < 0) {
             printf("Lesefehler: %s\n", strerror(errno));
         } else {
-            printf("Gelesen: %s\n", buffer);
+            double real_dist;
+            printf("Bitte geben Sie die reale Distanz ein: ");
+            scanf("%lf", &real_dist);
+            double sensor_dist = atof(buffer);
+            double diff_dist = real_dist - sensor_dist;
+            //printf("gemessene Distanz: %s\n", buffer);
+            printf("gemessene Distanz: %lf\n", sensor_dist);
+            printf("Differenz: %lf\n", diff_dist);
+            fprintf(stream, "%lf, %lf, %lf\n", real_dist, sensor_dist, diff_dist);
         }
     }
+    fclose(stream);
+
+    // void save_measurement(sqlite3 *db, double real_dist, double sensor_dist, double diff_dist) {
+    //     sqlite3_stmt *stmt;
+    //     const char *sql = "INSERT INTO messungen (realer_abstand, sensor_wert, differenz) VALUES (?, ?, ?);";
+    //     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    // }
 
     close(serial_port);
     return 0;
